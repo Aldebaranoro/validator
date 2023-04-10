@@ -302,6 +302,17 @@ func TestValidate(t *testing.T) {
 				return true
 			},
 		},
+		{
+			name: "valid struct with not empty validation",
+			args: args{
+				v: struct {
+					Str string `validate:"notempty"`
+				}{
+					Str: "aaa",
+				},
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

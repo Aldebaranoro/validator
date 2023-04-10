@@ -143,7 +143,10 @@ func validateStruct(v reflect.Value) error {
 }
 
 func validateString(s string, tagVal string) *ValidationError {
-	if tagVal == notEmptyValidator && len(strings.TrimSpace(s)) == 0 {
+	if tagVal == notEmptyValidator {
+		if len(strings.TrimSpace(s)) != 0 {
+			return nil
+		}
 		return &ValidationError{Err: errors.New(notEmptyErrMsg)}
 	}
 
