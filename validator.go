@@ -9,19 +9,21 @@ import (
 )
 
 const (
-	lenErrMsg = "length must be equal to %s"
-	maxErrMsg = "must be less than or equal to %s"
-	minErrMsg = "must be greater than or equal to %s"
-	inErrMsg  = "must be in [%s]"
+	lenErrMsg      = "length must be equal to %s"
+	maxErrMsg      = "must be less than or equal to %s"
+	minErrMsg      = "must be greater than or equal to %s"
+	inErrMsg       = "must be in [%s]"
+	notEmptyErrMsg = "must not be empty"
 )
 
 const (
-	validateTag    = "validate"
-	lenValidator   = "len"
-	maxValidator   = "max"
-	minValidator   = "min"
-	inValidator    = "in"
-	validValidator = "valid" // nested validation
+	validateTag       = "validate"
+	lenValidator      = "len"
+	maxValidator      = "max"
+	minValidator      = "min"
+	inValidator       = "in"
+	notEmptyValidator = "notempty"
+	validValidator    = "valid" // nested validation
 )
 
 var (
@@ -141,6 +143,10 @@ func validateStruct(v reflect.Value) error {
 }
 
 func validateString(s string, tagVal string) *ValidationError {
+	if tagVal == notEmptyValidator && len(strings.TrimSpace(s)) == 0 {
+		return &ValidationError{Err: errors.New(notEmptyErrMsg)}
+	}
+
 	ts := strings.Split(tagVal, ":")
 	if len(ts) < 2 || ts[1] == "" {
 		return &ValidationError{Err: ErrInvalidValidatorSyntax}

@@ -283,6 +283,25 @@ func TestValidate(t *testing.T) {
 				return true
 			},
 		},
+		{
+			name: "wrong not empty",
+			args: args{
+				v: struct {
+					EmptyA string `validate:"notempty"`
+					EmptyB string `validate:"notempty"`
+					EmptyC string `validate:"notempty:"`
+				}{
+					EmptyA: "",
+					EmptyB: "\t\t  \t\t",
+					EmptyC: "invalid syntax",
+				},
+			},
+			wantErr: true,
+			checkErr: func(err error) bool {
+				assert.Len(t, err.(ValidationErrors), 3)
+				return true
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
