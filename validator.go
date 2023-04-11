@@ -107,31 +107,43 @@ func validateStruct(v reflect.Value) error {
 			continue
 		}
 
-		var err *ValidationError
-		switch f.Type.Kind() {
-		case reflect.Struct:
-			if tagVal == validValidator {
-				nestedStructErrs := validateStruct(fieldVal)
-				if nestedStructErrs != nil {
-					errs = append(errs,
-						validateStruct(fieldVal).(ValidationErrors)...,
-					)
-				}
-			}
+		validators := strings.Split(tagVal, "|")
+		if len(validators) < 1 {
+			errs = append(errs,
+				ValidationError{
+					Err:   ErrInvalidValidatorSyntax,
+					field: f.Name,
+					tag:   tagVal,
+				},
+			)
 			continue
-		case reflect.Int:
-			err = validateInt64(fieldVal.Int(), tagVal)
-		case reflect.String:
-			err = validateString(fieldVal.String(), tagVal)
-		default:
-			err = &ValidationError{Err: ErrValidateForUnsupportedTypes}
 		}
 
-		if err != nil {
-			err.field = f.Name
-			err.tag = tagVal
-			err.val = fieldVal.Interface()
-			errs = append(errs, *err)
+		for _, validator := range validators {
+			var err *ValidationError
+			switch f.Type.Kind() {
+			case reflect.Struct:
+				if validator == validValidator {
+					nestedStructErrs := validateStruct(fieldVal)
+					if nestedStructErrs != nil {
+						errs = append(errs, nestedStructErrs.(ValidationErrors)...)
+					}
+				}
+				continue
+			case reflect.Int:
+				err = validateInt64(fieldVal.Int(), validator)
+			case reflect.String:
+				err = validateString(fieldVal.String(), validator)
+			default:
+				err = &ValidationError{Err: ErrValidateForUnsupportedTypes}
+			}
+
+			if err != nil {
+				err.field = f.Name
+				err.tag = validator
+				err.val = fieldVal.Interface()
+				errs = append(errs, *err)
+			}
 		}
 	}
 

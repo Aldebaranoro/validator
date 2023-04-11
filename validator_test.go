@@ -313,6 +313,36 @@ func TestValidate(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "valid struct with multiple validation",
+			args: args{
+				v: struct {
+					Str string `validate:"notempty|len:3"`
+				}{
+					Str: "aaa",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "wrong multiple validations",
+			args: args{
+				v: struct {
+					StrA string `validate:"notempty|"`
+					StrB string `validate:"|"`
+					StrC string `validate:"notempty|len:3"`
+				}{
+					StrA: "",
+					StrB: "\t\t  \t\t",
+					StrC: "aaaaaa",
+				},
+			},
+			wantErr: true,
+			checkErr: func(err error) bool {
+				assert.Len(t, err.(ValidationErrors), 5)
+				return true
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
