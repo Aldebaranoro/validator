@@ -343,6 +343,42 @@ func TestValidate(t *testing.T) {
 				return true
 			},
 		},
+		{
+			name: "valid struct with email validation",
+			args: args{
+				v: struct {
+					Email      string `validate:"email"`
+					EmptyEmail string `validate:"email"`
+				}{
+					Email:      "ivanov@mail.ru",
+					EmptyEmail: "",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "wrong email validations",
+			args: args{
+				v: struct {
+					EmailA string `validate:"email"`
+					EmailB string `validate:"email"`
+					EmailC string `validate:"email"`
+					EmailD string `validate:"email"`
+					EmailE string `validate:"email"`
+				}{
+					EmailA: ".ru",
+					EmailB: "ivanov",
+					EmailC: "@mail.ru",
+					EmailD: "ivanov@mail",
+					EmailE: "@",
+				},
+			},
+			wantErr: true,
+			checkErr: func(err error) bool {
+				assert.Len(t, err.(ValidationErrors), 5)
+				return true
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

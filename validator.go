@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -14,6 +15,7 @@ const (
 	minErrMsg      = "must be greater than or equal to %s"
 	inErrMsg       = "must be in [%s]"
 	notEmptyErrMsg = "must not be empty"
+	emailErrMsg    = "invalid email"
 )
 
 const (
@@ -23,8 +25,11 @@ const (
 	minValidator      = "min"
 	inValidator       = "in"
 	notEmptyValidator = "notempty"
+	emailValidator    = "email"
 	validValidator    = "valid" // nested validation
 )
+
+var emailRegexp = regexp.MustCompile(".+@.+[\\\\.].+")
 
 var (
 	ErrNotStruct                   = errors.New("wrong argument given, should be a struct")
@@ -160,6 +165,13 @@ func validateString(s string, tagVal string) *ValidationError {
 			return nil
 		}
 		return &ValidationError{Err: errors.New(notEmptyErrMsg)}
+	}
+
+	if tagVal == emailValidator {
+		if s == "" || emailRegexp.MatchString(s) {
+			return nil
+		}
+		return &ValidationError{Err: errors.New(emailErrMsg)}
 	}
 
 	ts := strings.Split(tagVal, ":")
